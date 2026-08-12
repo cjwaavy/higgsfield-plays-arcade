@@ -1,20 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { PLAYS } from './plays.js'
-import { useSettings, pickTarget, sfx, fireConfetti, SKIN_IDS } from './engine.js'
+import { useSettings, pickTarget, sfx, fireConfetti } from './engine.js'
 import { BrandTile, HiggsfieldTile } from './logos.jsx'
 import WheelSkin from './skins/Wheel.jsx'
 import CaseSkin from './skins/Case.jsx'
 import SlotsSkin from './skins/Slots.jsx'
-import GachaSkin from './skins/Gacha.jsx'
-import DeckSkin from './skins/Deck.jsx'
 
 const SKINS = {
   wheel: { label: 'The Wheel', glyph: '🎡', component: WheelSkin, verb: 'Spin the wheel' },
   case: { label: 'The Case', glyph: '📦', component: CaseSkin, verb: 'Open the case' },
   slots: { label: 'The Slots', glyph: '🎰', component: SlotsSkin, verb: 'Pull the lever' },
-  gacha: { label: 'The Gacha', glyph: '🔮', component: GachaSkin, verb: 'Turn the crank' },
-  deck: { label: 'The Deck', glyph: '🃏', component: DeckSkin, verb: 'Draw a card' },
 }
+
+const TIP_KEY = 'higgsfield-plays.tipSeen'
 
 export default function App() {
   const [settings, updateSettings] = useSettings()
@@ -22,8 +20,21 @@ export default function App() {
   const [result, setResult] = useState(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [overlayOpen, setOverlayOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [showTip, setShowTip] = useState(false)
   const confettiRef = useRef(null)
   const stageRef = useRef(null)
+
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem(TIP_KEY)) {
+        setShowTip(true)
+        localStorage.setItem(TIP_KEY, '1')
+        const id = window.setTimeout(() => setShowTip(false), 9000)
+        return () => window.clearTimeout(id)
+      }
+    } catch {}
+  }, [])
 
   const skin = SKINS[settings.skin] ?? SKINS.wheel
   const SkinComponent = skin.component
@@ -100,6 +111,50 @@ export default function App() {
       >
         <FullscreenIcon />
       </button>
+      {showTip && (
+        <div className="first-tip fs-tip" role="status" onClick={() => setShowTip(false)}>
+          go fullscreen for filming
+        </div>
+      )}
+
+      <div className="machine-menu">
+        <button
+          type="button"
+          className="btn icon hamburger-btn"
+          aria-label="Choose a machine"
+          aria-expanded={menuOpen}
+          onClick={() => {
+            setMenuOpen((v) => !v)
+            setShowTip(false)
+          }}
+        >
+          <BurgerIcon />
+        </button>
+        {menuOpen && (
+          <div className="menu-panel" role="menu">
+            {Object.keys(SKINS).map((id) => (
+              <button
+                key={id}
+                type="button"
+                role="menuitem"
+                className={`menu-item${settings.skin === id ? ' is-active' : ''}`}
+                onClick={() => {
+                  if (!spin.spinning) updateSettings({ skin: id })
+                  setMenuOpen(false)
+                }}
+              >
+                <span aria-hidden="true">{SKINS[id].glyph}</span> {SKINS[id].label}
+              </button>
+            ))}
+          </div>
+        )}
+        {showTip && !menuOpen && (
+          <div className="first-tip" role="status" onClick={() => setShowTip(false)}>
+            <b>☰ switch machines</b> · click the wheel to spin · ⚙ rigs the result
+          </div>
+        )}
+      </div>
+
       <header className="masthead">
         <p className="marquee-lights" aria-hidden="true">
           ✦ ✦ ✦ ✦ ✦ ✦ ✦
@@ -111,26 +166,6 @@ export default function App() {
           {PLAYS.length} ways to get paid with AI video. <b>Pick a machine. Spin. Go build it.</b>
         </p>
       </header>
-
-      <nav className="skin-rail" aria-label="Choose a machine">
-        {SKIN_IDS.map((id) => (
-          <button
-            key={id}
-            type="button"
-            className={`skin-tab${settings.skin === id ? ' is-active' : ''}`}
-            onClick={() => {
-              if (spin.spinning) return
-              updateSettings({ skin: id })
-            }}
-            aria-pressed={settings.skin === id}
-          >
-            <span className="glyph" aria-hidden="true">
-              {SKINS[id].glyph}
-            </span>
-            <span className="name">{SKINS[id].label}</span>
-          </button>
-        ))}
-      </nav>
 
       <main className="stage" ref={stageRef}>
         <p className="eyebrow" aria-live="polite">
@@ -246,6 +281,19 @@ function SettingsModal({ muted, lockedPlayId, onMuted, onLocked, onClose }) {
         </button>
       </div>
     </div>
+  )
+}
+
+function BurgerIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 6h16M4 12h16M4 18h16"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
   )
 }
 

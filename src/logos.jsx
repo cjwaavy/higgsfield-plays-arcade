@@ -9,23 +9,48 @@ const LINKEDIN_PATH =
 const HIGGSFIELD_PATH =
   'M18.3498 9.83713L18.3339 9.65759C18.1831 7.93447 17.0963 4.69261 14.0816 4.69261C11.8445 4.69261 10.1545 6.97097 8.66311 8.97967C7.47302 10.5883 6.4419 11.9683 5.3073 11.9683C5.00574 11.9357 4.61708 11.7805 4.3792 11.4294C4.16497 11.1108 4.10948 10.7026 4.22046 10.2126C4.39489 9.43684 5.39463 8.7182 6.44963 7.95063C7.02864 7.54238 7.6238 7.10955 8.03634 6.69311C9.22643 5.5091 9.82932 4.65164 9.82932 3.2717C9.82932 1.89176 9.09157 1.20565 8.47276 0.911636C7.23514 0.323844 5.41851 0.666781 4.26026 1.69583C4.08583 1.85922 3.91117 2.01418 3.75243 2.16119C2.58622 3.23097 1.80094 3.95781 0 3.40232V5.63972C2.38791 6.72588 4.39512 4.65164 5.15675 3.69633C5.74372 3.06758 6.36253 2.70006 6.82283 2.70006H6.84671C7.05298 2.70825 7.22741 2.78995 7.35454 2.93696C7.56081 3.18204 7.64018 3.46786 7.60038 3.78622C7.51305 4.45594 6.83875 5.23967 5.60113 6.09713C4.14928 7.10159 1.7218 8.78374 1.53122 10.8987C1.3884 12.4177 2.15003 13.9365 3.34012 14.5243C6.11669 15.8798 7.80665 13.5444 9.5994 11.0783C10.9719 9.1756 12.273 7.37103 14.0818 7.37103C15.7081 7.37103 16.311 8.75916 16.311 9.63301V9.80459L16.1523 9.83713C12.2095 10.5558 10.0595 14.3611 10.0595 16.1167C10.0595 17.8724 11.5034 19.375 13.2804 19.375C15.359 19.375 17.9293 17.5458 18.3419 12.4013L18.3578 12.2136H20V9.83737H18.3498V9.83713ZM16.1998 12.4746C15.8826 15.5531 14.3513 16.9904 13.4232 16.9904C13.0027 16.9904 12.4158 16.631 12.4158 15.9615C12.4158 15.2104 13.5026 12.932 15.946 12.2543L16.2316 12.1808L16.1998 12.4748V12.4746Z'
 
+// Official multicolor Google Maps pin (2020), via Wikimedia Commons.
+const GMAPS_PATHS = [
+  { d: 'M60.2 2.2C55.8.8 51 0 46.1 0 32 0 19.3 6.4 10.8 16.5l21.8 18.3L60.2 2.2z', fill: '#1a73e8' },
+  { d: 'M10.8 16.5C4.1 24.5 0 34.9 0 46.1c0 8.7 1.7 15.7 4.6 22l28-33.3-21.8-18.3z', fill: '#ea4335' },
+  { d: 'M46.2 28.5c9.8 0 17.7 7.9 17.7 17.7 0 4.3-1.6 8.3-4.2 11.4 0 0 13.9-16.6 27.5-32.7-5.6-10.8-15.3-19-27-22.7L32.6 34.8c3.3-3.8 8.1-6.3 13.6-6.3', fill: '#4285f4' },
+  { d: 'M46.2 63.8c-9.8 0-17.7-7.9-17.7-17.7 0-4.3 1.5-8.3 4.1-11.3l-28 33.3c4.8 10.6 12.8 19.2 21 29.9l34.1-40.5c-3.3 3.9-8.1 6.3-13.5 6.3', fill: '#fbbc04' },
+  { d: 'M59.1 109.2c15.4-24.1 33.3-35 33.3-63 0-7.7-1.9-14.9-5.2-21.3L25.6 98c2.6 3.4 5.3 7.3 7.9 11.3 9.4 14.5 6.8 23.1 12.8 23.1s3.4-8.7 12.8-23.2', fill: '#34a853' },
+]
+
+const mono = (icon, bg, fg = '#ffffff') => ({
+  title: icon.title,
+  viewBox: '0 0 24 24',
+  paths: [{ d: icon.path, fill: fg }],
+  bg,
+})
+
 // App-icon style tiles: filled rounded square in the brand color, glyph knocked out.
 const BRAND_BY_PLAY = {
-  'meta-ads': { title: 'Meta', path: siMeta.path, bg: '#0866FF', fg: '#ffffff', viewBox: '0 0 24 24' },
-  'airbnb-walkthroughs': { title: 'Airbnb', path: siAirbnb.path, bg: '#FF385C', fg: '#ffffff', viewBox: '0 0 24 24' },
-  'real-estate-ads': { title: 'Zillow', path: siZillow.path, bg: '#006AFF', fg: '#ffffff', viewBox: '0 0 24 24' },
-  'b2b-commercials': { title: 'LinkedIn', path: LINKEDIN_PATH, bg: '#0A66C2', fg: '#ffffff', viewBox: '0 0 24 24' },
-  'website-design': { title: 'Google Maps', path: siGooglemaps.path, bg: '#ffffff', fg: '#4285F4', viewBox: '0 0 24 24' },
-  'yt-shorts': { title: 'YouTube Shorts', path: siYoutubeshorts.path, bg: '#FF0000', fg: '#ffffff', viewBox: '0 0 24 24' },
-  'yt-kids': { title: 'YouTube Kids', path: siYoutubekids.path, bg: '#FF0000', fg: '#ffffff', viewBox: '0 0 24 24' },
+  'meta-ads': mono(siMeta, '#0866FF'),
+  'airbnb-walkthroughs': mono(siAirbnb, '#FF385C'),
+  'real-estate-ads': mono(siZillow, '#006AFF'),
+  'b2b-commercials': {
+    title: 'LinkedIn',
+    viewBox: '0 0 24 24',
+    paths: [{ d: LINKEDIN_PATH, fill: '#ffffff' }],
+    bg: '#0A66C2',
+  },
+  'website-design': {
+    title: 'Google Maps',
+    viewBox: '0 0 92.3 132.3',
+    paths: GMAPS_PATHS,
+    bg: '#ffffff',
+  },
+  'yt-shorts': mono(siYoutubeshorts, '#FF0000'),
+  'yt-kids': mono(siYoutubekids, '#FF0000'),
 }
 
 export const HF_BRAND = {
   title: 'Higgsfield',
-  path: HIGGSFIELD_PATH,
-  bg: '#CBF83E',
-  fg: '#0a0a12',
   viewBox: '0 0 20 20',
+  paths: [{ d: HIGGSFIELD_PATH, fill: '#0a0a12' }],
+  bg: '#CBF83E',
 }
 
 export function getBrand(playId) {
@@ -37,7 +62,9 @@ export function Tile({ brand, className = '' }) {
   return (
     <span className={`lockup-tile ${className}`} style={{ background: brand.bg }}>
       <svg viewBox={brand.viewBox} role="img" aria-label={brand.title}>
-        <path d={brand.path} fill={brand.fg} />
+        {brand.paths.map((p, i) => (
+          <path key={i} d={p.d} fill={p.fill} />
+        ))}
       </svg>
     </span>
   )

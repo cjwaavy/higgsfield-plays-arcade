@@ -10,6 +10,30 @@ const easeFn = cubicBezier(...EASE)
 const WEDGE_FILLS = ['#3369E8', '#009925', '#EEB211', '#D50F25']
 const DARK_TEXT_FILLS = new Set(['#009925', '#EEB211'])
 
+function WedgeTile({ brand }) {
+  const [, , vw, vh] = brand.viewBox.split(' ').map(Number)
+  const scale = 19 / Math.max(vw, vh)
+  const tx = (26 - vw * scale) / 2
+  const ty = (26 - vh * scale) / 2
+  return (
+    <g transform="translate(320 167)">
+      <rect
+        width="26"
+        height="26"
+        rx="6.5"
+        fill={brand.bg}
+        stroke="rgba(255,255,255,0.9)"
+        strokeWidth="1.4"
+      />
+      <g transform={`translate(${tx} ${ty}) scale(${scale})`}>
+        {brand.paths.map((p, i) => (
+          <path key={i} d={p.d} fill={p.fill} />
+        ))}
+      </g>
+    </g>
+  )
+}
+
 function polar(cx, cy, r, deg) {
   const rad = ((deg - 90) * Math.PI) / 180
   return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)]
@@ -105,23 +129,7 @@ export default function WheelSkin({ plays, spin, muted, onRequestSpin, onLand })
                     >
                       {p.short ?? p.title}
                     </text>
-                    {brand && (
-                      <g transform="translate(320 167)">
-                        <rect
-                          width="26"
-                          height="26"
-                          rx="6.5"
-                          fill={brand.bg}
-                          stroke="rgba(255,255,255,0.9)"
-                          strokeWidth="1.4"
-                        />
-                        <path
-                          d={brand.path}
-                          fill={brand.fg}
-                          transform="translate(3.6 3.6) scale(0.78)"
-                        />
-                      </g>
-                    )}
+                    {brand && <WedgeTile brand={brand} />}
                   </g>
                 </g>
               )

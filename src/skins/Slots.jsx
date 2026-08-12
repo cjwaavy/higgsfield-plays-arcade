@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { cubicBezier, scheduleTicks, sfx } from '../engine.js'
 import { Tile, getBrand, HF_BRAND } from '../logos.jsx'
 
-const CELL = 92
+const CELL = 84
 const ROUNDS = 5
 const REEL_DURATIONS = [2100, 2800, 3500]
 const EASE = [0.18, 0.84, 0.28, 1.02]

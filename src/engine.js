@@ -5,7 +5,7 @@ import { PLAYS, normalizePlayId } from './plays.js'
 const SETTINGS_KEY = 'higgsfield-plays.settings'
 const DEFAULTS = { sprintMinutes: 30, muted: false, lockedPlayId: null, skin: 'wheel' }
 
-export const SKIN_IDS = ['wheel', 'case', 'slots', 'gacha', 'deck']
+export const SKIN_IDS = ['wheel', 'case', 'slots']
 
 function loadSettings() {
   try {
