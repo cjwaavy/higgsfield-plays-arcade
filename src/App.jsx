@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { PLAYS } from './plays.js'
-import { useSettings, pickTarget, sfx, fireConfetti } from './engine.js'
+import { useSettings, pickTarget, sfx, fireConfetti, setVolume, volumeToGain } from './engine.js'
 import { BrandTile, HiggsfieldTile } from './logos.jsx'
 import WheelSkin from './skins/Wheel.jsx'
 import CaseSkin from './skins/Case.jsx'
@@ -35,6 +35,10 @@ export default function App() {
       }
     } catch {}
   }, [])
+
+  useEffect(() => {
+    setVolume(settings.muted ? 0 : volumeToGain(settings.volume))
+  }, [settings.muted, settings.volume])
 
   const skin = SKINS[settings.skin] ?? SKINS.wheel
   const SkinComponent = skin.component
@@ -220,8 +224,10 @@ export default function App() {
       {modalOpen && (
         <SettingsModal
           muted={settings.muted}
+          volume={settings.volume}
           lockedPlayId={settings.lockedPlayId}
           onMuted={(v) => updateSettings({ muted: v })}
+          onVolume={(v) => updateSettings({ volume: v })}
           onLocked={(v) => updateSettings({ lockedPlayId: v })}
           onClose={() => setModalOpen(false)}
         />
@@ -230,7 +236,7 @@ export default function App() {
   )
 }
 
-function SettingsModal({ muted, lockedPlayId, onMuted, onLocked, onClose }) {
+function SettingsModal({ muted, volume, lockedPlayId, onMuted, onVolume, onLocked, onClose }) {
   const locked = PLAYS.find((p) => p.id === lockedPlayId) ?? null
   return (
     <div className="scrim" onClick={onClose} role="presentation">
@@ -270,6 +276,32 @@ function SettingsModal({ muted, lockedPlayId, onMuted, onLocked, onClose }) {
               'Pick a play to lock the result before you record, so the take lands on the topic you prepared.'
             )}
           </p>
+        </div>
+        <div className="field">
+          <div className="field-head">
+            <span className="k">Volume</span>
+            <span className="v">{volume <= 100 ? `${volume}%` : `+${volume - 100}dB`}</span>
+          </div>
+          <input
+            type="range"
+            className="volume-slider"
+            min={0}
+            max={120}
+            step={5}
+            value={volume}
+            onChange={(e) => {
+              const v = Number(e.target.value)
+              onVolume(v)
+              setVolume(muted ? 0 : volumeToGain(v))
+              if (!muted && v > 0) sfx.clack()
+            }}
+            aria-label="Sound volume, values past 100 boost up to +20dB"
+          />
+          <div className="ends">
+            <span>0</span>
+            <span>100%</span>
+            <span className="boost-label">+20dB</span>
+          </div>
         </div>
         <label className="check">
           <input type="checkbox" checked={muted} onChange={(e) => onMuted(e.target.checked)} />

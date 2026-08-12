@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { PLAYS, normalizePlayId } from './plays.js'
 
 const SETTINGS_KEY = 'higgsfield-plays.settings'
-const DEFAULTS = { sprintMinutes: 30, muted: false, lockedPlayId: null, skin: 'wheel' }
+const DEFAULTS = { sprintMinutes: 30, muted: false, lockedPlayId: null, skin: 'wheel', volume: 100 }
 
 export const SKIN_IDS = ['wheel', 'case', 'slots']
 
@@ -20,6 +20,10 @@ function loadSettings() {
       muted: typeof s.muted === 'boolean' ? s.muted : DEFAULTS.muted,
       lockedPlayId: normalizePlayId(s.lockedPlayId),
       skin: SKIN_IDS.includes(s.skin) ? s.skin : DEFAULTS.skin,
+      volume:
+        typeof s.volume === 'number' && s.volume >= 0 && s.volume <= 120
+          ? s.volume
+          : DEFAULTS.volume,
     }
   } catch {
     return DEFAULTS
@@ -87,17 +91,48 @@ export function pickTarget(lockedPlayId, currentId) {
 }
 
 // ---------- audio ----------
+// All sfx route through masterGain (volume/boost) -> compressor (normalizes
+// loudness and stops the +20dB boost zone from clipping) -> speakers.
 let audioCtx = null
+let masterGain = null
+let desiredGain = 1
+
 function ctx() {
   if (typeof window === 'undefined') return null
   try {
     const AC = window.AudioContext ?? window.webkitAudioContext
     if (!AC) return null
-    audioCtx ??= new AC()
+    if (!audioCtx) {
+      audioCtx = new AC()
+      masterGain = audioCtx.createGain()
+      masterGain.gain.value = desiredGain
+      const comp = audioCtx.createDynamicsCompressor()
+      comp.threshold.value = -14
+      comp.knee.value = 18
+      comp.ratio.value = 8
+      comp.attack.value = 0.002
+      comp.release.value = 0.16
+      masterGain.connect(comp)
+      comp.connect(audioCtx.destination)
+    }
     if (audioCtx.state === 'suspended') audioCtx.resume()
     return audioCtx
   } catch {
     return null
+  }
+}
+
+// Slider value 0–120: 0–100 is a perceptual volume curve, 100–120 maps to 0…+20dB boost.
+export function volumeToGain(v) {
+  if (v <= 0) return 0
+  if (v <= 100) return Math.pow(v / 100, 2)
+  return Math.pow(10, (v - 100) / 20)
+}
+
+export function setVolume(gain) {
+  desiredGain = gain
+  if (audioCtx && masterGain) {
+    masterGain.gain.setTargetAtTime(gain, audioCtx.currentTime, 0.01)
   }
 }
 
@@ -112,33 +147,35 @@ function blip(freq, dur, gain, type = 'sine', when = 0) {
   g.gain.setValueAtTime(0.0001, t0)
   g.gain.exponentialRampToValueAtTime(gain, t0 + 0.008)
   g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur)
-  osc.connect(g).connect(c.destination)
+  osc.connect(g).connect(masterGain)
   osc.start(t0)
   osc.stop(t0 + dur + 0.02)
 }
 
+// Peak gains are leveled so every effect lands at a similar perceived loudness;
+// the master compressor irons out the rest.
 export const sfx = {
-  tick: () => blip(1180, 0.035, 0.035, 'triangle'),
-  clack: () => blip(320, 0.06, 0.05, 'square'),
+  tick: () => blip(1180, 0.035, 0.06, 'triangle'),
+  clack: () => blip(320, 0.06, 0.08, 'square'),
   clunk: () => {
     blip(150, 0.09, 0.09, 'square')
-    blip(96, 0.14, 0.07, 'sine', 0.02)
+    blip(96, 0.14, 0.08, 'sine', 0.02)
   },
   pop: () => {
-    blip(420, 0.05, 0.08, 'square')
-    blip(880, 0.09, 0.05, 'sine', 0.03)
+    blip(420, 0.05, 0.09, 'square')
+    blip(880, 0.09, 0.07, 'sine', 0.03)
   },
   win: () => {
-    blip(523.25, 0.18, 0.07)
-    blip(659.25, 0.22, 0.06, 'sine', 0.09)
-    blip(783.99, 0.3, 0.06, 'sine', 0.18)
-    blip(1046.5, 0.4, 0.05, 'sine', 0.27)
+    blip(523.25, 0.18, 0.08)
+    blip(659.25, 0.22, 0.08, 'sine', 0.09)
+    blip(783.99, 0.3, 0.08, 'sine', 0.18)
+    blip(1046.5, 0.4, 0.07, 'sine', 0.27)
   },
   // party-popper: cork thump + filtered noise burst + sparkle crackles
   confetti: () => {
     const c = ctx()
     if (!c) return
-    blip(190, 0.08, 0.14, 'square')
+    blip(190, 0.08, 0.1, 'square')
     const len = Math.floor(c.sampleRate * 0.3)
     const buf = c.createBuffer(1, len, c.sampleRate)
     const data = buf.getChannelData(0)
@@ -150,11 +187,11 @@ export const sfx = {
     bp.frequency.value = 1900
     bp.Q.value = 0.7
     const g = c.createGain()
-    g.gain.value = 0.3
-    src.connect(bp).connect(g).connect(c.destination)
+    g.gain.value = 0.22
+    src.connect(bp).connect(g).connect(masterGain)
     src.start()
     for (let i = 0; i < 7; i++) {
-      blip(1300 + Math.random() * 2100, 0.045, 0.035, 'triangle', 0.06 + i * 0.05 + Math.random() * 0.03)
+      blip(1300 + Math.random() * 2100, 0.045, 0.05, 'triangle', 0.06 + i * 0.05 + Math.random() * 0.03)
     }
   },
 }
