@@ -8,7 +8,15 @@ const REEL_DURATIONS = [2100, 2800, 3500]
 const EASE = [0.18, 0.84, 0.28, 1.02]
 const easeFn = cubicBezier(...EASE)
 
+function computeZoom() {
+  return Math.max(
+    1,
+    Math.min((window.innerHeight - 430) / 360, (window.innerWidth * 0.8) / 360, 2.4)
+  )
+}
+
 export default function SlotsSkin({ plays, spin, muted, onRequestSpin, onLand, verb }) {
+  const [zoom, setZoom] = useState(() => computeZoom())
   const [offsets, setOffsets] = useState([0, 0, 0])
   const [animating, setAnimating] = useState(false)
   const [leverDown, setLeverDown] = useState(false)
@@ -16,6 +24,12 @@ export default function SlotsSkin({ plays, spin, muted, onRequestSpin, onLand, v
   const timeoutsRef = useRef([])
   const cabinetRef = useRef(null)
   const lastCount = useRef(0)
+
+  useEffect(() => {
+    const onResize = () => setZoom(computeZoom())
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const stripLen = plays.length * (ROUNDS + 1)
   // Outer reels cycle the brand tiles; the middle reel interleaves Higgsfield marks so a
@@ -80,7 +94,7 @@ export default function SlotsSkin({ plays, spin, muted, onRequestSpin, onLand, v
 
   return (
     <div className="slots-skin">
-      <div className="slots-cabinet" ref={cabinetRef}>
+      <div className="slots-cabinet" ref={cabinetRef} style={{ zoom }}>
         <div className="slots-top" aria-hidden="true">
           <span className="slots-sign">JACKPOT PAYS IN PLAYS</span>
         </div>
