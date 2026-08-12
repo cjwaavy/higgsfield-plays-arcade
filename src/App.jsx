@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { PLAYS } from './plays.js'
 import { useSettings, pickTarget, sfx, fireConfetti, SKIN_IDS } from './engine.js'
-import { BrandMark, HiggsfieldMark } from './logos.jsx'
+import { BrandTile, HiggsfieldTile } from './logos.jsx'
 import WheelSkin from './skins/Wheel.jsx'
 import CaseSkin from './skins/Case.jsx'
 import SlotsSkin from './skins/Slots.jsx'
@@ -171,11 +171,11 @@ export default function App() {
           <p className="win-kicker">{result.kicker}</p>
           <h2 className="win-title">{result.title}</h2>
           <div className="win-lockup">
-            <BrandMark playId={result.id} />
+            <BrandTile playId={result.id} />
             <span className="win-x" aria-hidden="true">
               ×
             </span>
-            <HiggsfieldMark />
+            <HiggsfieldTile />
           </div>
           <p className="win-hint">tap anywhere — the playbook is waiting below</p>
         </div>

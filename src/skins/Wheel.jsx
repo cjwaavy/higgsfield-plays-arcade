@@ -5,7 +5,9 @@ const DURATION = 4400
 const EASE = [0.12, 0.66, 0.05, 1]
 const easeFn = cubicBezier(...EASE)
 
-const WEDGE_FILLS = ['#a3202f', '#12352a', '#c8801d', '#1d2b4f', '#7c2d12', '#0f4c5c', '#4a1d6e']
+// wheelofnames-style flat primaries, cycled across wedges
+const WEDGE_FILLS = ['#3369E8', '#009925', '#EEB211', '#D50F25']
+const DARK_TEXT_FILLS = new Set(['#009925', '#EEB211'])
 
 function polar(cx, cy, r, deg) {
   const rad = ((deg - 90) * Math.PI) / 180
@@ -40,7 +42,8 @@ export default function WheelSkin({ plays, spin, muted, onRequestSpin, onLand, v
     const idx = plays.findIndex((p) => p.id === spin.target.id)
     const current = rotationRef.current
     const jitter = (Math.random() - 0.5) * wedge * 0.6
-    const desired = -idx * wedge + jitter
+    // pointer sits at 3 o'clock (90° clockwise from top)
+    const desired = 90 - idx * wedge + jitter
     const delta = ((desired - current) % 360 + 360) % 360
     const final = current + 4 * 360 + delta
     rotationRef.current = final
@@ -56,7 +59,7 @@ export default function WheelSkin({ plays, spin, muted, onRequestSpin, onLand, v
       window.setTimeout(() => {
         setAnimating(false)
         const rect = pointerRef.current?.getBoundingClientRect()
-        onLand(rect ? { x: rect.left + rect.width / 2, y: rect.bottom } : undefined)
+        onLand(rect ? { x: rect.left, y: rect.top + rect.height / 2 } : undefined)
       }, DURATION + 80)
     )
     return clear
@@ -70,13 +73,9 @@ export default function WheelSkin({ plays, spin, muted, onRequestSpin, onLand, v
           viewBox="0 0 360 360"
           className="wheel-svg"
           role="img"
-          aria-label="Prize wheel of plays"
+          aria-label="Prize wheel of plays — click to spin"
+          onClick={onRequestSpin}
         >
-          <circle cx="180" cy="180" r="176" className="wheel-rim" />
-          {Array.from({ length: 14 }).map((_, i) => {
-            const [x, y] = polar(180, 180, 168, i * (360 / 14))
-            return <circle key={i} cx={x} cy={y} r="4.2" className="wheel-bulb" style={{ animationDelay: `${i * 0.12}s` }} />
-          })}
           <g
             style={{
               transform: `rotate(${rotation}deg)`,
@@ -89,45 +88,33 @@ export default function WheelSkin({ plays, spin, muted, onRequestSpin, onLand, v
             {plays.map((p, i) => {
               const start = i * wedge - wedge / 2
               const end = start + wedge
-              const [lx, ly] = polar(180, 180, 108, i * wedge)
+              const fill = WEDGE_FILLS[i % WEDGE_FILLS.length]
+              const long = p.title.length > 13
               return (
                 <g key={p.id}>
-                  <path
-                    d={wedgePath(180, 180, 158, start, end)}
-                    fill={WEDGE_FILLS[i % WEDGE_FILLS.length]}
-                    stroke="#f5c542"
-                    strokeWidth="2"
-                  />
+                  <path d={wedgePath(180, 180, 176, start, end)} fill={fill} />
                   <text
-                    x={lx}
-                    y={ly}
-                    className="wedge-emoji"
-                    transform={`rotate(${i * wedge} ${lx} ${ly})`}
-                  >
-                    {p.emoji}
-                  </text>
-                  <text
-                    x={polar(180, 180, 140, i * wedge)[0]}
-                    y={polar(180, 180, 140, i * wedge)[1]}
-                    className="wedge-label"
-                    transform={`rotate(${i * wedge} ${polar(180, 180, 140, i * wedge)[0]} ${polar(180, 180, 140, i * wedge)[1]})`}
+                    x="346"
+                    y="180"
+                    textAnchor="end"
+                    className="wedge-name"
+                    style={{ fontSize: long ? 14 : 19 }}
+                    fill={DARK_TEXT_FILLS.has(fill) ? '#101010' : '#ffffff'}
+                    transform={`rotate(${i * wedge - 90} 180 180)`}
                   >
                     {p.title}
                   </text>
                 </g>
               )
             })}
-            <circle cx="180" cy="180" r="34" className="wheel-hub" />
-            <text x="180" y="187" className="wheel-hub-label">
-              HP
-            </text>
+            <circle cx="180" cy="180" r="38" fill="#ffffff" />
           </g>
         </svg>
       </div>
       <button type="button" className="btn go" onClick={onRequestSpin} disabled={spin.spinning}>
         {spin.spinning ? 'Spinning…' : verb}
       </button>
-      <p className="stage-hint">or press space</p>
+      <p className="stage-hint">tap the wheel or press space</p>
     </div>
   )
 }
