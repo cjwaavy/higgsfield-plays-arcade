@@ -12,6 +12,7 @@
   --dim: #9a94b8;
   --line: rgba(245, 197, 66, 0.18);
   --display: 'Bungee', cursive;
+  --serif: 'Fraunces', 'Iowan Old Style', Georgia, serif;
   --round: 'Quicksand', sans-serif;
   --body: 'Barlow Semi Condensed', sans-serif;
   --mono: 'IBM Plex Mono', monospace;
@@ -297,11 +298,12 @@ body {
 }
 
 .win-title {
-  font-family: var(--round);
-  font-weight: 700;
-  font-size: clamp(44px, 9.5vw, 96px);
-  line-height: 1.04;
-  color: #ffffff;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(46px, 9.5vw, 104px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: #f4ecdc;
   text-shadow:
     0 3px 16px rgba(0, 0, 0, 0.95),
     0 10px 38px rgba(0, 0, 0, 0.85),
