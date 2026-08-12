@@ -1,4 +1,4 @@
-import { siMeta, siAirbnb, siZillow, siFramer, siYoutubeshorts, siYoutubekids } from 'simple-icons'
+import { siMeta, siAirbnb, siZillow, siGooglemaps, siYoutubeshorts, siYoutubekids } from 'simple-icons'
 
 // LinkedIn is no longer distributed by simple-icons (brand policy). This is the classic
 // "in" glyph with the outer box subpath stripped, so it sits on a colored tile.
@@ -11,35 +11,57 @@ const HIGGSFIELD_PATH =
 
 // App-icon style tiles: filled rounded square in the brand color, glyph knocked out.
 const BRAND_BY_PLAY = {
-  'meta-ads': { title: 'Meta', path: siMeta.path, bg: '#0866FF', fg: '#ffffff' },
-  'airbnb-walkthroughs': { title: 'Airbnb', path: siAirbnb.path, bg: '#FF385C', fg: '#ffffff' },
-  'real-estate-ads': { title: 'Zillow', path: siZillow.path, bg: '#006AFF', fg: '#ffffff' },
-  'b2b-commercials': { title: 'LinkedIn', path: LINKEDIN_PATH, bg: '#0A66C2', fg: '#ffffff' },
-  'website-design': { title: 'Framer', path: siFramer.path, bg: '#ffffff', fg: '#000000' },
-  'yt-shorts': { title: 'YouTube Shorts', path: siYoutubeshorts.path, bg: '#FF0000', fg: '#ffffff' },
-  'yt-kids': { title: 'YouTube Kids', path: siYoutubekids.path, bg: '#FF0000', fg: '#ffffff' },
+  'meta-ads': { title: 'Meta', path: siMeta.path, bg: '#0866FF', fg: '#ffffff', viewBox: '0 0 24 24' },
+  'airbnb-walkthroughs': { title: 'Airbnb', path: siAirbnb.path, bg: '#FF385C', fg: '#ffffff', viewBox: '0 0 24 24' },
+  'real-estate-ads': { title: 'Zillow', path: siZillow.path, bg: '#006AFF', fg: '#ffffff', viewBox: '0 0 24 24' },
+  'b2b-commercials': { title: 'LinkedIn', path: LINKEDIN_PATH, bg: '#0A66C2', fg: '#ffffff', viewBox: '0 0 24 24' },
+  'website-design': { title: 'Google Maps', path: siGooglemaps.path, bg: '#ffffff', fg: '#4285F4', viewBox: '0 0 24 24' },
+  'yt-shorts': { title: 'YouTube Shorts', path: siYoutubeshorts.path, bg: '#FF0000', fg: '#ffffff', viewBox: '0 0 24 24' },
+  'yt-kids': { title: 'YouTube Kids', path: siYoutubekids.path, bg: '#FF0000', fg: '#ffffff', viewBox: '0 0 24 24' },
 }
 
-const HIGGSFIELD_TILE = { bg: '#CBF83E', fg: '#0a0a12' }
+export const HF_BRAND = {
+  title: 'Higgsfield',
+  path: HIGGSFIELD_PATH,
+  bg: '#CBF83E',
+  fg: '#0a0a12',
+  viewBox: '0 0 20 20',
+}
 
-export function BrandTile({ playId }) {
-  const brand = BRAND_BY_PLAY[playId]
+export function getBrand(playId) {
+  return BRAND_BY_PLAY[playId] ?? null
+}
+
+export function Tile({ brand, className = '' }) {
   if (!brand) return null
   return (
-    <span className="lockup-tile" style={{ background: brand.bg }}>
-      <svg viewBox="0 0 24 24" role="img" aria-label={brand.title}>
+    <span className={`lockup-tile ${className}`} style={{ background: brand.bg }}>
+      <svg viewBox={brand.viewBox} role="img" aria-label={brand.title}>
         <path d={brand.path} fill={brand.fg} />
       </svg>
     </span>
   )
 }
 
+export function BrandTile({ playId }) {
+  return <Tile brand={getBrand(playId)} />
+}
+
 export function HiggsfieldTile() {
+  return <Tile brand={HF_BRAND} className="hf" />
+}
+
+// Small "[brand] × [Higgsfield]" pair used on cards.
+export function LogoCombo({ playId, className = '' }) {
+  const brand = getBrand(playId)
+  if (!brand) return null
   return (
-    <span className="lockup-tile hf" style={{ background: HIGGSFIELD_TILE.bg }}>
-      <svg viewBox="0 0 20 20" role="img" aria-label="Higgsfield">
-        <path d={HIGGSFIELD_PATH} fill={HIGGSFIELD_TILE.fg} />
-      </svg>
+    <span className={`logo-combo ${className}`}>
+      <Tile brand={brand} className="sm" />
+      <span className="combo-x" aria-hidden="true">
+        ×
+      </span>
+      <Tile brand={HF_BRAND} className="sm hf" />
     </span>
   )
 }

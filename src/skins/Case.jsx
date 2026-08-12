@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { cubicBezier, scheduleTicks, sfx } from '../engine.js'
+import { LogoCombo } from '../logos.jsx'
 
 const DURATION = 5200
 const EASE = [0.05, 0.72, 0.09, 1]
@@ -96,9 +97,7 @@ export default function CaseSkin({ plays, spin, muted, onRequestSpin, onLand, ve
               className={`case-card${landedIndex === i ? ' is-hit' : ''}`}
               style={{ width: CARD_W }}
             >
-              <span className="case-emoji" aria-hidden="true">
-                {p.emoji}
-              </span>
+              <LogoCombo playId={p.id} />
               <span className="case-name">{p.title}</span>
               <span className="case-kicker">{p.kicker}</span>
             </div>

@@ -16,20 +16,12 @@ const SKINS = {
   deck: { label: 'The Deck', glyph: '🃏', component: DeckSkin, verb: 'Draw a card' },
 }
 
-function formatClock(totalSeconds) {
-  const m = Math.floor(totalSeconds / 60)
-  const s = totalSeconds % 60
-  return `${m}:${String(s).padStart(2, '0')}`
-}
-
 export default function App() {
   const [settings, updateSettings] = useSettings()
   const [spin, setSpin] = useState({ spinning: false, target: null, count: 0 })
   const [result, setResult] = useState(null)
-  const [playbookOpen, setPlaybookOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [overlayOpen, setOverlayOpen] = useState(false)
-  const [secondsLeft, setSecondsLeft] = useState(null)
   const confettiRef = useRef(null)
   const stageRef = useRef(null)
 
@@ -43,7 +35,6 @@ export default function App() {
       const target = pickTarget(settings.lockedPlayId, result?.id ?? null)
       return { spinning: true, target, count: prev.count + 1 }
     })
-    setPlaybookOpen(false)
     setOverlayOpen(false)
   }, [settings.lockedPlayId, result])
 
@@ -53,7 +44,10 @@ export default function App() {
         if (!prev.spinning) return prev
         setResult(prev.target)
         setOverlayOpen(true)
-        if (!settings.muted) sfx.win()
+        if (!settings.muted) {
+          sfx.win()
+          sfx.confetti()
+        }
         const canvas = confettiRef.current
         if (canvas) {
           const rect = canvas.getBoundingClientRect()
@@ -90,26 +84,22 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [requestSpin, modalOpen, overlayOpen])
 
-  useEffect(() => {
-    if (secondsLeft === null || secondsLeft <= 0) return
-    const id = window.setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s === null) return null
-        if (s <= 1) {
-          if (!settings.muted) sfx.win()
-          return 0
-        }
-        return s - 1
-      })
-    }, 1000)
-    return () => window.clearInterval(id)
-  }, [secondsLeft, settings.muted])
-
   const status = spin.spinning ? 'In play' : result ? result.kicker : 'Ready when you are'
 
   return (
     <div className="shell" data-skin={settings.skin}>
       <div className="grain" aria-hidden="true" />
+      <button
+        type="button"
+        className="btn icon fullscreen-btn"
+        aria-label="Toggle fullscreen"
+        onClick={() => {
+          if (document.fullscreenElement) document.exitFullscreen()
+          else document.documentElement.requestFullscreen?.()
+        }}
+      >
+        <FullscreenIcon />
+      </button>
       <header className="masthead">
         <p className="marquee-lights" aria-hidden="true">
           ✦ ✦ ✦ ✦ ✦ ✦ ✦
@@ -177,44 +167,11 @@ export default function App() {
             </span>
             <HiggsfieldTile />
           </div>
-          <p className="win-hint">tap anywhere — the playbook is waiting below</p>
-        </div>
-      )}
-
-      {result && !spin.spinning && (
-        <section className="result" aria-live="polite">
-          <h2 className="result-title">
-            <span className="result-emoji" aria-hidden="true">
-              {result.emoji}
-            </span>
-            {result.title}
-          </h2>
-          <p className="hook">{result.hook}</p>
-          <button type="button" className="reveal" onClick={() => setPlaybookOpen((v) => !v)}>
-            {playbookOpen ? 'Hide the playbook' : 'Show me the playbook →'}
-          </button>
-          {playbookOpen && <Playbook play={result} />}
-        </section>
-      )}
-
-      {secondsLeft !== null && (
-        <div className={`timer${secondsLeft === 0 ? ' is-done' : ''}`}>
-          {secondsLeft === 0 ? "Time's up — ship it" : formatClock(secondsLeft)}
+          <p className="win-hint">tap anywhere to close</p>
         </div>
       )}
 
       <div className="actions">
-        <button
-          type="button"
-          className="btn ghost"
-          onClick={
-            secondsLeft === null
-              ? () => setSecondsLeft(settings.sprintMinutes * 60)
-              : () => setSecondsLeft(null)
-          }
-        >
-          {secondsLeft === null ? `Start ${settings.sprintMinutes} min sprint` : 'Stop timer'}
-        </button>
         <button
           type="button"
           className={`btn icon${lockedPlay ? ' is-locked' : ''}`}
@@ -225,18 +182,10 @@ export default function App() {
         </button>
       </div>
 
-      <footer className="footer">
-        Price ranges are typical market rates, not guarantees — what you actually charge depends on
-        your market and your work. Check Higgsfield's terms and each platform's synthetic-media
-        rules before you sell, and disclose AI-generated content to clients and audiences.
-      </footer>
-
       {modalOpen && (
         <SettingsModal
-          minutes={settings.sprintMinutes}
           muted={settings.muted}
           lockedPlayId={settings.lockedPlayId}
-          onMinutes={(v) => updateSettings({ sprintMinutes: v })}
           onMuted={(v) => updateSettings({ muted: v })}
           onLocked={(v) => updateSettings({ lockedPlayId: v })}
           onClose={() => setModalOpen(false)}
@@ -246,63 +195,7 @@ export default function App() {
   )
 }
 
-function Playbook({ play }) {
-  const difficultyLabel = ['', 'Anyone can start', 'Some craft required', 'Real skill or spend'][
-    play.difficulty
-  ]
-  return (
-    <section className="playbook">
-      <div className="facts">
-        <div className="fact">
-          <p className="k">What you sell</p>
-          <p className="v">{play.sell}</p>
-        </div>
-        <div className="fact">
-          <p className="k">Going rate</p>
-          <p className="v">{play.price}</p>
-        </div>
-        <div className="fact">
-          <p className="k">First dollar in</p>
-          <p className="v">{play.ramp}</p>
-        </div>
-        <div className="fact">
-          <p className="k">Difficulty</p>
-          <p className="v">
-            <span className="pips" aria-hidden="true">
-              {[1, 2, 3].map((n) => (
-                <span key={n} className={`pip${n <= play.difficulty ? ' on' : ''}`} />
-              ))}
-            </span>{' '}
-            {difficultyLabel}
-          </p>
-        </div>
-      </div>
-      <div className="cols">
-        <div className="col">
-          <h3>How you make it</h3>
-          <ol>
-            {play.build.map((step) => (
-              <li key={step}>{step}</li>
-            ))}
-          </ol>
-        </div>
-        <div className="col">
-          <h3>Where the buyers are</h3>
-          <ul>
-            {play.find.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-      <p className="tip">
-        <b>The edge:</b> {play.tip}
-      </p>
-    </section>
-  )
-}
-
-function SettingsModal({ minutes, muted, lockedPlayId, onMinutes, onMuted, onLocked, onClose }) {
+function SettingsModal({ muted, lockedPlayId, onMuted, onLocked, onClose }) {
   const locked = PLAYS.find((p) => p.id === lockedPlayId) ?? null
   return (
     <div className="scrim" onClick={onClose} role="presentation">
@@ -343,25 +236,6 @@ function SettingsModal({ minutes, muted, lockedPlayId, onMinutes, onMuted, onLoc
             )}
           </p>
         </div>
-        <div className="field">
-          <div className="field-head">
-            <span className="k">Sprint</span>
-            <span className="v">{minutes} min</span>
-          </div>
-          <input
-            type="range"
-            min={5}
-            max={120}
-            step={5}
-            value={minutes}
-            onChange={(e) => onMinutes(Number(e.target.value))}
-            aria-label="Sprint length in minutes"
-          />
-          <div className="ends">
-            <span>5 min</span>
-            <span>120 min</span>
-          </div>
-        </div>
         <label className="check">
           <input type="checkbox" checked={muted} onChange={(e) => onMuted(e.target.checked)} />
           Mute sound effects
@@ -372,6 +246,20 @@ function SettingsModal({ minutes, muted, lockedPlayId, onMinutes, onMuted, onLoc
         </button>
       </div>
     </div>
+  )
+}
+
+function FullscreenIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   )
 }
 

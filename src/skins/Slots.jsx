@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { cubicBezier, scheduleTicks, sfx } from '../engine.js'
+import { Tile, getBrand, HF_BRAND } from '../logos.jsx'
 
 const CELL = 92
 const ROUNDS = 5
@@ -17,7 +18,13 @@ export default function SlotsSkin({ plays, spin, muted, onRequestSpin, onLand, v
   const lastCount = useRef(0)
 
   const stripLen = plays.length * (ROUNDS + 1)
-  const strip = Array.from({ length: stripLen }, (_, i) => plays[i % plays.length])
+  // Outer reels cycle the brand tiles; the middle reel interleaves Higgsfield marks so a
+  // win line reads [brand] [Higgsfield] [brand] — the brand × Higgsfield method.
+  const outerStrip = Array.from({ length: stripLen }, (_, i) => getBrand(plays[i % plays.length].id))
+  const middleStrip = Array.from({ length: stripLen }, (_, i) =>
+    i % 2 === 1 ? HF_BRAND : getBrand(plays[(i >> 1) % plays.length].id)
+  )
+  const strips = [outerStrip, middleStrip, outerStrip]
 
   useEffect(() => {
     const clear = () => {
@@ -29,8 +36,9 @@ export default function SlotsSkin({ plays, spin, muted, onRequestSpin, onLand, v
     clear()
 
     const targetIdx = plays.findIndex((p) => p.id === spin.target.id)
-    const finalIndex = plays.length * ROUNDS + targetIdx
-    const final = finalIndex * CELL - CELL // show target in middle window of 3
+    const outerIndex = plays.length * ROUNDS + targetIdx
+    const middleIndex = outerIndex % 2 === 1 ? outerIndex : outerIndex + 1 // nearest HF cell
+    const finals = [outerIndex, middleIndex, outerIndex].map((idx) => idx * CELL - CELL)
 
     setLeverDown(true)
     setLitReels([false, false, false])
@@ -42,13 +50,13 @@ export default function SlotsSkin({ plays, spin, muted, onRequestSpin, onLand, v
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
         setAnimating(true)
-        setOffsets([final, final, final])
+        setOffsets(finals)
       })
     )
 
     REEL_DURATIONS.forEach((dur, r) => {
       if (!muted && r === 0) {
-        scheduleTicks(final, dur, easeFn, CELL * 2, sfx.tick, timeoutsRef.current)
+        scheduleTicks(finals[0], dur, easeFn, CELL * 2, sfx.tick, timeoutsRef.current)
       }
       timeoutsRef.current.push(
         window.setTimeout(() => {
@@ -88,9 +96,9 @@ export default function SlotsSkin({ plays, spin, muted, onRequestSpin, onLand, v
                     : 'none',
                 }}
               >
-                {strip.map((p, i) => (
+                {strips[r].map((brand, i) => (
                   <div key={`${r}-${i}`} className="reel-cell" style={{ height: CELL }}>
-                    {p.emoji}
+                    <Tile brand={brand} className="slot" />
                   </div>
                 ))}
               </div>

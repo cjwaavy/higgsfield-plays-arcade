@@ -1,6 +1,7 @@
 export const PLAYS = [
   {
     id: 'meta-ads',
+    short: 'Meta Ads',
     title: 'Meta Ads',
     kicker: 'Paid social',
     emoji: '📣',
@@ -25,6 +26,7 @@ export const PLAYS = [
   },
   {
     id: 'airbnb-walkthroughs',
+    short: 'Airbnb',
     title: 'Airbnb Walkthroughs',
     kicker: 'Short-stay hosts',
     emoji: '🛏️',
@@ -48,6 +50,7 @@ export const PLAYS = [
   },
   {
     id: 'real-estate-ads',
+    short: 'Real Estate',
     title: 'Real Estate Ads',
     kicker: 'Agents & brokerages',
     emoji: '🔑',
@@ -72,6 +75,7 @@ export const PLAYS = [
   },
   {
     id: 'b2b-commercials',
+    short: 'B2B Ads',
     title: 'B2B Commercials',
     kicker: 'Companies selling to companies',
     emoji: '🏢',
@@ -95,6 +99,7 @@ export const PLAYS = [
   },
   {
     id: 'website-design',
+    short: 'Websites',
     title: 'Website Design',
     kicker: 'Sites & landing pages',
     emoji: '🖥️',
@@ -119,6 +124,7 @@ export const PLAYS = [
   },
   {
     id: 'yt-shorts',
+    short: 'YT Shorts',
     title: 'YT Shorts',
     kicker: 'Faceless channel',
     emoji: '⚡',
@@ -141,6 +147,7 @@ export const PLAYS = [
   },
   {
     id: 'yt-kids',
+    short: 'YT Kids',
     title: 'YT Kids',
     kicker: 'Faceless channel',
     emoji: '🧸',

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { sfx } from '../engine.js'
+import { LogoCombo } from '../logos.jsx'
 
 const TIMES = { gather: 450, shuffle: 2050, fan: 2550, draw: 2950, flip: 3600 }
 
@@ -90,9 +91,13 @@ export default function DeckSkin({ plays, spin, muted, onRequestSpin, onLand, ve
                   <span className="deck-corner tl" aria-hidden="true">
                     ✦
                   </span>
-                  <span className="deck-emoji" aria-hidden="true">
-                    {spin.target?.emoji ?? '✦'}
-                  </span>
+                  {spin.target ? (
+                    <LogoCombo playId={spin.target.id} className="deck" />
+                  ) : (
+                    <span className="deck-emoji" aria-hidden="true">
+                      ✦
+                    </span>
+                  )}
                   <span className="deck-title">{spin.target?.title ?? ''}</span>
                   <span className="deck-kicker">{spin.target?.kicker ?? ''}</span>
                   <span className="deck-corner br" aria-hidden="true">

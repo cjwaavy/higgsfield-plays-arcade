@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { cubicBezier, scheduleTicks, sfx } from '../engine.js'
+import { getBrand } from '../logos.jsx'
 
 const DURATION = 4400
 const EASE = [0.12, 0.66, 0.05, 1]
@@ -20,7 +21,7 @@ function wedgePath(cx, cy, r, startDeg, endDeg) {
   return `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`
 }
 
-export default function WheelSkin({ plays, spin, muted, onRequestSpin, onLand, verb }) {
+export default function WheelSkin({ plays, spin, muted, onRequestSpin, onLand }) {
   const [rotation, setRotation] = useState(0)
   const [animating, setAnimating] = useState(false)
   const rotationRef = useRef(0)
@@ -89,32 +90,51 @@ export default function WheelSkin({ plays, spin, muted, onRequestSpin, onLand, v
               const start = i * wedge - wedge / 2
               const end = start + wedge
               const fill = WEDGE_FILLS[i % WEDGE_FILLS.length]
-              const long = p.title.length > 13
+              const brand = getBrand(p.id)
               return (
                 <g key={p.id}>
                   <path d={wedgePath(180, 180, 176, start, end)} fill={fill} />
-                  <text
-                    x="346"
-                    y="180"
-                    textAnchor="end"
-                    className="wedge-name"
-                    style={{ fontSize: long ? 14 : 19 }}
-                    fill={DARK_TEXT_FILLS.has(fill) ? '#101010' : '#ffffff'}
-                    transform={`rotate(${i * wedge - 90} 180 180)`}
-                  >
-                    {p.title}
-                  </text>
+                  <g transform={`rotate(${i * wedge - 90} 180 180)`}>
+                    <text
+                      x="312"
+                      y="180"
+                      textAnchor="end"
+                      className="wedge-name"
+                      style={{ fontSize: 17 }}
+                      fill={DARK_TEXT_FILLS.has(fill) ? '#101010' : '#ffffff'}
+                    >
+                      {p.short ?? p.title}
+                    </text>
+                    {brand && (
+                      <g transform="translate(320 167)">
+                        <rect
+                          width="26"
+                          height="26"
+                          rx="6.5"
+                          fill={brand.bg}
+                          stroke="rgba(255,255,255,0.9)"
+                          strokeWidth="1.4"
+                        />
+                        <path
+                          d={brand.path}
+                          fill={brand.fg}
+                          transform="translate(3.6 3.6) scale(0.78)"
+                        />
+                      </g>
+                    )}
+                  </g>
                 </g>
               )
             })}
-            <circle cx="180" cy="180" r="38" fill="#ffffff" />
+            <circle cx="180" cy="180" r="34" fill="#ffffff" />
           </g>
         </svg>
+        {!spin.spinning && (
+          <div className="wheel-cta" aria-hidden="true">
+            Click to spin
+          </div>
+        )}
       </div>
-      <button type="button" className="btn go" onClick={onRequestSpin} disabled={spin.spinning}>
-        {spin.spinning ? 'Spinning…' : verb}
-      </button>
-      <p className="stage-hint">tap the wheel or press space</p>
     </div>
   )
 }

@@ -134,6 +134,29 @@ export const sfx = {
     blip(783.99, 0.3, 0.06, 'sine', 0.18)
     blip(1046.5, 0.4, 0.05, 'sine', 0.27)
   },
+  // party-popper: cork thump + filtered noise burst + sparkle crackles
+  confetti: () => {
+    const c = ctx()
+    if (!c) return
+    blip(190, 0.08, 0.14, 'square')
+    const len = Math.floor(c.sampleRate * 0.3)
+    const buf = c.createBuffer(1, len, c.sampleRate)
+    const data = buf.getChannelData(0)
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.4)
+    const src = c.createBufferSource()
+    src.buffer = buf
+    const bp = c.createBiquadFilter()
+    bp.type = 'bandpass'
+    bp.frequency.value = 1900
+    bp.Q.value = 0.7
+    const g = c.createGain()
+    g.gain.value = 0.3
+    src.connect(bp).connect(g).connect(c.destination)
+    src.start()
+    for (let i = 0; i < 7; i++) {
+      blip(1300 + Math.random() * 2100, 0.045, 0.035, 'triangle', 0.06 + i * 0.05 + Math.random() * 0.03)
+    }
+  },
 }
 
 // ---------- easing ----------
