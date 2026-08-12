@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { PLAYS } from './plays.js'
 import { useSettings, pickTarget, sfx, fireConfetti, SKIN_IDS } from './engine.js'
+import { BrandMark, HiggsfieldMark } from './logos.jsx'
 import WheelSkin from './skins/Wheel.jsx'
 import CaseSkin from './skins/Case.jsx'
 import SlotsSkin from './skins/Slots.jsx'
@@ -27,6 +28,7 @@ export default function App() {
   const [result, setResult] = useState(null)
   const [playbookOpen, setPlaybookOpen] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
+  const [overlayOpen, setOverlayOpen] = useState(false)
   const [secondsLeft, setSecondsLeft] = useState(null)
   const confettiRef = useRef(null)
   const stageRef = useRef(null)
@@ -42,6 +44,7 @@ export default function App() {
       return { spinning: true, target, count: prev.count + 1 }
     })
     setPlaybookOpen(false)
+    setOverlayOpen(false)
   }, [settings.lockedPlayId, result])
 
   const handleLand = useCallback(
@@ -49,6 +52,7 @@ export default function App() {
       setSpin((prev) => {
         if (!prev.spinning) return prev
         setResult(prev.target)
+        setOverlayOpen(true)
         if (!settings.muted) sfx.win()
         const canvas = confettiRef.current
         if (canvas) {
@@ -68,18 +72,23 @@ export default function App() {
     const onKey = (e) => {
       if (e.key === 'Escape') {
         setModalOpen(false)
+        setOverlayOpen(false)
         return
       }
       if (modalOpen) return
       const tag = e.target?.tagName
       if (e.code === 'Space' && tag !== 'INPUT' && tag !== 'BUTTON' && tag !== 'SELECT') {
         e.preventDefault()
+        if (overlayOpen) {
+          setOverlayOpen(false)
+          return
+        }
         requestSpin()
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [requestSpin, modalOpen])
+  }, [requestSpin, modalOpen, overlayOpen])
 
   useEffect(() => {
     if (secondsLeft === null || secondsLeft <= 0) return
@@ -147,8 +156,30 @@ export default function App() {
           onLand={handleLand}
           verb={skin.verb}
         />
-        <canvas ref={confettiRef} className="confetti" aria-hidden="true" />
       </main>
+
+      <canvas ref={confettiRef} className="confetti" aria-hidden="true" />
+
+      {overlayOpen && result && (
+        <div
+          className="win-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`You landed on ${result.title}`}
+          onClick={() => setOverlayOpen(false)}
+        >
+          <p className="win-kicker">{result.kicker}</p>
+          <h2 className="win-title">{result.title}</h2>
+          <div className="win-lockup">
+            <BrandMark playId={result.id} />
+            <span className="win-x" aria-hidden="true">
+              ×
+            </span>
+            <HiggsfieldMark />
+          </div>
+          <p className="win-hint">tap anywhere — the playbook is waiting below</p>
+        </div>
+      )}
 
       {result && !spin.spinning && (
         <section className="result" aria-live="polite">
