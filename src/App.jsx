@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { PLAYS } from './plays.js'
 import { useSettings, pickTarget, sfx, fireConfetti, setVolume, volumeToGain } from './engine.js'
-import { BrandTile, HiggsfieldTile } from './logos.jsx'
+import { BrandTile, HiggsfieldTile, PARTNER_NAME } from './logos.jsx'
 import WheelSkin from './skins/Wheel.jsx'
 import CaseSkin from './skins/Case.jsx'
 import SlotsSkin from './skins/Slots.jsx'
@@ -24,6 +24,10 @@ export default function App() {
   const [showTip, setShowTip] = useState(false)
   const confettiRef = useRef(null)
   const stageRef = useRef(null)
+
+  useEffect(() => {
+    document.title = `${PARTNER_NAME} Plays — pick a way to get paid`
+  }, [])
 
   useEffect(() => {
     try {
@@ -164,7 +168,7 @@ export default function App() {
           ✦ ✦ ✦ ✦ ✦ ✦ ✦
         </p>
         <h1 className="wordmark">
-          Higgsfield <span>Plays</span>
+          {PARTNER_NAME} <span>Plays</span>
         </h1>
         <p className="tagline">
           {PLAYS.length} ways to get paid with AI video. <b>Pick a machine. Spin. Go build it.</b>
